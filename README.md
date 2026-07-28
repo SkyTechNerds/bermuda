@@ -1,3 +1,13 @@
+> ## 🔱 A friendly fork of [agittins/bermuda](https://github.com/agittins/bermuda)
+>
+> **All credit for Bermuda belongs to [Ashley Gittins (@agittins)](https://github.com/agittins) and its contributors.** This fork exists only to add one feature we needed and to make it available to the community — please use, ⭐ star, and [sponsor the original project](https://github.com/agittins/bermuda) first. If the feature is accepted upstream, this fork will step aside.
+>
+> **What this fork adds:** a **per-scanner "Max detection radius"** control (`number.<scanner>_max_detection_radius`, in metres; `0` = use the global default) — the per-scanner analogue of ESPresense's per-node `max_distance`. It stops an over-reaching proxy (for example an ESP re-used as both a sensor and a BLE scanner) from winning a device's Area beyond its useful range, without having to tighten the global radius for every scanner. Fully backwards compatible: left at `0`, behaviour is identical to upstream.
+>
+> Everything below is the original project's documentation, unchanged.
+
+---
+
 ![Bermuda Logo](img/logo@2x.png)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=agittins&repository=bermuda&category=Integration)
