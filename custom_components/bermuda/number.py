@@ -14,7 +14,7 @@ from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, EntityCatego
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
-from .const import SIGNAL_DEVICE_NEW
+from .const import SIGNAL_DEVICE_NEW, SIGNAL_SCANNERS_CHANGED
 from .entity import BermudaEntity
 
 if TYPE_CHECKING:
@@ -47,9 +47,6 @@ async def async_setup_entry(
         if address not in created_devices:
             entities = []
             entities.append(BermudaNumber(coordinator, entry, address))
-            # Scanners additionally get a per-scanner max detection radius control.
-            if coordinator.devices[address].is_scanner:
-                entities.append(BermudaScannerMaxRadius(coordinator, entry, address))
             # We set update before add to False because we are being
             # call(back(ed)) from the update, so causing it to call another would be... bad.
             async_add_devices(entities, False)
@@ -62,8 +59,38 @@ async def async_setup_entry(
         # tell the co-ord we've done it.
         coordinator.number_created(address)
 
-    # Connect device_new to a signal so the coordinator can call it
+    created_scanners: set[str] = set()  # scanner addresses we've made a max-radius control for
+
+    @callback
+    def create_scanner_entities() -> None:
+        """Create one 'max detection radius' control per scanner.
+
+        Scanners are not tracked devices and never flow through device_new, so
+        we hook the scanner roster instead (mirroring sensor.py). Wait until each
+        remote scanner has its wifi mac so the control attaches to the right
+        device rather than a placeholder.
+        """
+        for scanner in coordinator.scanner_list:
+            if scanner.is_remote_scanner and scanner.address_wifi_mac is None:
+                return
+        entities = []
+        for scanner in coordinator.scanner_list:
+            if scanner.address not in created_scanners:
+                entities.append(BermudaScannerMaxRadius(coordinator, entry, scanner.address))
+                created_scanners.add(scanner.address)
+        if entities:
+            async_add_devices(entities, False)
+
+    @callback
+    def scanners_changed() -> None:
+        """The roster of scanners changed — ensure each has its control."""
+        create_scanner_entities()
+
+    # Connect device_new (tracked devices) and scanners_changed (scanners) signals.
     entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_DEVICE_NEW, device_new))
+    entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_SCANNERS_CHANGED, scanners_changed))
+    # Scanners may already be known by the time this platform loads.
+    create_scanner_entities()
 
     # Now we must tell the co-ord to do initial refresh, so that it will call our callback.
     # await coordinator.async_config_entry_first_refresh()
