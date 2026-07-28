@@ -56,6 +56,10 @@ async def async_setup_entry(
             #     "Ignoring create request for existing dev_tracker %s", address
             # )
             pass
+        # Scanners become "ready" (wifi mac known) over several update cycles and
+        # emit no reliable per-readiness signal, so retry per-scanner creation on
+        # each device discovery too (mirrors sensor.py).
+        create_scanner_entities()
         # tell the co-ord we've done it.
         coordinator.number_created(address)
 
@@ -70,14 +74,17 @@ async def async_setup_entry(
         remote scanner has its wifi mac so the control attaches to the right
         device rather than a placeholder.
         """
-        for scanner in coordinator.get_scanners:
-            if scanner.is_remote_scanner and scanner.address_wifi_mac is None:
-                return
         entities = []
         for scanner in coordinator.get_scanners:
-            if scanner.address not in created_scanners:
-                entities.append(BermudaScannerMaxRadius(coordinator, entry, scanner.address))
-                created_scanners.add(scanner.address)
+            if scanner.address in created_scanners:
+                continue
+            # Wait until a remote scanner has its wifi mac so the control attaches
+            # to the correct device. Skip (not bail) so other ready scanners are
+            # still created now; this is retried as scanners become ready.
+            if scanner.is_remote_scanner and scanner.address_wifi_mac is None:
+                continue
+            entities.append(BermudaScannerMaxRadius(coordinator, entry, scanner.address))
+            created_scanners.add(scanner.address)
         if entities:
             async_add_devices(entities, False)
 
