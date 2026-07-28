@@ -10,7 +10,7 @@ from homeassistant.components.number import (
     NumberMode,
     RestoreNumber,
 )
-from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, EntityCategory
+from homeassistant.const import SIGNAL_STRENGTH_DECIBELS_MILLIWATT, EntityCategory, UnitOfLength
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
@@ -47,6 +47,9 @@ async def async_setup_entry(
         if address not in created_devices:
             entities = []
             entities.append(BermudaNumber(coordinator, entry, address))
+            # Scanners additionally get a per-scanner max detection radius control.
+            if coordinator.devices[address].is_scanner:
+                entities.append(BermudaScannerMaxRadius(coordinator, entry, address))
             # We set update before add to False because we are being
             # call(back(ed)) from the update, so causing it to call another would be... bad.
             async_add_devices(entities, False)
@@ -124,6 +127,61 @@ class BermudaNumber(BermudaEntity, RestoreNumber):
         and can be maintained / renamed etc by the user.
         """
         return f"{self._device.unique_id}_ref_power"
+
+
+class BermudaScannerMaxRadius(BermudaEntity, RestoreNumber):
+    """Per-scanner maximum detection radius, in metres. 0 = use the global default.
+
+    The per-scanner analogue of ESPresense's per-node ``max_distance``: while a
+    device is farther than this many metres from the scanner, the scanner cannot
+    win that device's Area. This lets an over-reading proxy (e.g. an ESP reused
+    as both a sensor and a BLE scanner) be reined in without touching the global
+    max radius. Only created for scanner devices.
+    """
+
+    _attr_should_poll = False
+    _attr_has_entity_name = True
+    _attr_name = "Max detection radius (m). 0 for default."
+    _attr_translation_key = "max_radius"
+    _attr_device_class = NumberDeviceClass.DISTANCE
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_native_min_value = 0
+    _attr_native_max_value = 50
+    _attr_native_step = 0.5
+    _attr_native_unit_of_measurement = UnitOfLength.METERS
+    _attr_mode = NumberMode.BOX
+
+    def __init__(
+        self,
+        coordinator: BermudaDataUpdateCoordinator,
+        entry: BermudaConfigEntry,
+        address: str,
+    ) -> None:
+        """Initialise the number entity."""
+        self.restored_data: NumberExtraStoredData | None = None
+        super().__init__(coordinator, entry, address)
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the saved radius from HA storage on startup."""
+        await super().async_added_to_hass()
+        self.restored_data = await self.async_get_last_number_data()
+        if self.restored_data is not None and self.restored_data.native_value is not None:
+            self.coordinator.devices[self.address].set_max_radius(self.restored_data.native_value)
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the configured per-scanner max radius (metres)."""
+        return self.coordinator.devices[self.address].max_radius
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Set a new per-scanner max radius."""
+        self.coordinator.devices[self.address].set_max_radius(value)
+        self.async_write_ha_state()
+
+    @property
+    def unique_id(self):
+        """Uniquely identify this control in the entity registry."""
+        return f"{self._device.unique_id}_max_radius"
 
     # @property
     # def extra_state_attributes(self) -> Mapping[str, Any]:
