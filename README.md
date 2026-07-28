@@ -4,13 +4,13 @@
 >
 > **What this fork adds:** a **per-scanner "Max detection radius"** control (`number.<scanner>_max_detection_radius`, in metres; `0` = use the global default) — the per-scanner analogue of ESPresense's per-node `max_distance`. It stops an over-reaching proxy (for example an ESP re-used as both a sensor and a BLE scanner) from winning a device's Area beyond its useful range, without having to tighten the global radius for every scanner. Fully backwards compatible: left at `0`, behaviour is identical to upstream.
 >
-> Everything below is the original project's documentation, unchanged.
+> Everything below is the original project's documentation. Only the "Open in HACS" install links point to this fork; all other links (wiki, discussions, sponsors, maintainer) intentionally still point to the upstream project.
 
 ---
 
 ![Bermuda Logo](img/logo@2x.png)
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=agittins&repository=bermuda&category=Integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=SkyTechNerds&repository=bermuda&category=Integration)
 
 # Bermuda BLE Trilateration
 
@@ -59,7 +59,7 @@ Bermuda aims to let you track any bluetooth device, and have Home Assistant tell
 - Some bluetooth BLE devices you want to track. Phones, smart watches, beacon tiles, thermometers etc.
 
 - Bermuda! I strongly recommend installing Bermuda via HACS:
-  [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=agittins&repository=bermuda&category=Integration)
+  [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=SkyTechNerds&repository=bermuda&category=Integration)
 
 ## Documentation and help
 
@@ -148,7 +148,7 @@ a fair amount of ESPresense's wheel.
 You can install Bermuda by opening HACS on your Home Assistant instance and searching for "Bermuda".
 Alternatively you can click the button below to be automatically redirected.
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=agittins&repository=bermuda&category=Integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=SkyTechNerds&repository=bermuda&category=Integration)
 
 You should now be able to add the `Bermuda BLE Trilateration` integration. Once you have done that,
 you need to restart Home Assistant, then in `Settings`, `Devices & Services` choose `Add Integration`
