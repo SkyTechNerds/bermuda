@@ -179,6 +179,10 @@ class BermudaScannerMaxRadius(BermudaEntity, RestoreNumber):
     _attr_translation_key = "max_radius"
     _attr_device_class = NumberDeviceClass.DISTANCE
     _attr_entity_category = EntityCategory.CONFIG
+    # Disabled by default: only needed to rein in an over-reading scanner, so it
+    # stays out of the way (no screen real-estate, no state-machine slot) until a
+    # user enables it per scanner. 0 = use the global default when left disabled.
+    _attr_entity_registry_enabled_default = False
     _attr_native_min_value = 0
     _attr_native_max_value = 50
     _attr_native_step = 0.5
